@@ -8,14 +8,25 @@
 #define TILE_SIZE 50
 #define TILE_TYPES 5
 
-const char tile_chars[TILE_TYPES] = {'@', '$', '&', '#', '%'};
+const char tile_chars[TILE_TYPES] = {'e', 'x', 'g', 'h', 'i'};
 char board[BOARD_SIZE][BOARD_SIZE];
 
-Vector2 grid_origin;
+Texture2D background;
+Font gameFont;
+Font scoreFont;
+
+Color line_colour = (Color){255, 100, 50, 100};
+Color text_colour = (Color){255, 100, 50, 100};
 
 char randomTile()
 {
     return tile_chars[rand() % TILE_TYPES];
+}
+
+void loadFonts(Font *gameFont, Font *scoreFont)
+{
+    *gameFont = LoadFont("./src/resources/GameFont.TTF");
+    *scoreFont = LoadFont("./src/resources/scoreFont.ttf");
 }
 
 void fill_array()
@@ -42,10 +53,10 @@ void draw_board()
                 TILE_SIZE};
             DrawRectangleLinesEx(rect, 1, DARKGRAY);
             DrawTextEx(
-                GetFontDefault(),
+                gameFont,
                 TextFormat("%c", board[x][y]),
-                (Vector2){rect.x + 12, rect.y + 8},
-                30, 1, LIGHTGRAY);
+                (Vector2){rect.x + 8, rect.y + 10},
+                35, 1, GRAY);
         }
     }
 }
@@ -56,12 +67,15 @@ int main()
     const int screen_height = 800;
     const int screen_width = 800;
     InitWindow(screen_height, screen_width, "Match3");
-    // srand(time(NULL));
 
+    background = LoadTexture("./src/resources/plen.png");
+    srand(time(NULL));
+    loadFonts(&gameFont, &scoreFont);
     while (!WindowShouldClose())
     {
         BeginDrawing();
         ClearBackground(BLACK);
+        DrawTexture(background, 0, 0, WHITE);
         draw_board();
         EndDrawing();
     }
