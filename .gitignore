@@ -75,3 +75,4 @@ android.*
 # Clion
 .idea/
 *.iml
+.vscode/
