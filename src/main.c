@@ -18,7 +18,7 @@ const char tile_chars[TILE_TYPES] = { 'a', 'b', 'c', 'd', 'e' };
 char board[BOARD_SIZE][BOARD_SIZE];
 bool matches[BOARD_SIZE][BOARD_SIZE]      = { false };
 float fall_offset[BOARD_SIZE][BOARD_SIZE] = { 0 };
-int score                                 = 200;
+int score                                 = 0;
 Vector2 selected                          = { -1, -1 };
 Texture2D background;
 float fall_speed = 8.0f;
@@ -51,69 +51,41 @@ void fill_array () {
 }
 
 
-bool find_matches () {
+bool find_matches (bool updateScore) {
     bool found = false;
-    for (int r = 0; r < BOARD_SIZE; r++) {
-        for (int c = 0; c < BOARD_SIZE; c++) {
-            matches[r][c] = false;
+    for (int y = 0; y < BOARD_SIZE; y++) {
+        for (int x = 0; x < BOARD_SIZE; x++) {
+            matches[y][x] = false;
         }
     }
-    for (int r = 0; r < BOARD_SIZE; r++) {
-        for (int c = 0; c < BOARD_SIZE;) {
-            char currentChar       = board[r][c];
-            int currentMatchLength = 0;
-            for (int k = c; k < BOARD_SIZE; k++) {
-                if (board[r][k] == currentChar) {
-                    currentMatchLength++;
-                } else {
-                    break;
+
+    for (int y = 0; y < BOARD_SIZE; y++) {
+        for (int x = 0; x < BOARD_SIZE - 2; x++) {
+            char t = board[y][x];
+            if (t == board[y][x + 1] && t == board[y][x + 2]) {
+                matches[y][x] = matches[y][x + 1] = matches[y][x + 2] = true;
+                // update score
+                if (updateScore) {
+                    score += 10;
                 }
-            }
-            if (currentMatchLength >= 3) {
                 found = true;
-                if (currentMatchLength == 4) {
-                    for (int k = 0; k < 3; k++) {
-                        matches[r][c + k] = true;
-                    }
-                    score += 20;
-                } else {
-                    for (int k = 0; k < currentMatchLength; k++) {
-                        matches[r][c + k] = true;
-                    }
-                    score += (currentMatchLength / 3) * 20;
-                }
             }
-            c += (currentMatchLength > 0) ? currentMatchLength : 1;
         }
     }
-    for (int c = 0; c < BOARD_SIZE; c++) {
-        for (int r = 0; r < BOARD_SIZE;) {
-            char currentChar       = board[r][c];
-            int currentMatchLength = 0;
-            for (int k = r; k < BOARD_SIZE; k++) {
-                if (board[k][c] == currentChar) {
-                    currentMatchLength++;
-                } else {
-                    break;
+
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE - 2; y++) {
+            char t = board[y][x];
+            if (t == board[y + 1][x] && t == board[y + 2][x]) {
+                matches[y][x] = matches[y + 1][x] = matches[y + 2][x] = true;
+                if (updateScore) {
+                    score += 10;
                 }
-            }
-            if (currentMatchLength >= 3) {
                 found = true;
-                if (currentMatchLength == 4) {
-                    for (int k = 0; k < 3; k++) {
-                        matches[r + k][c] = true;
-                    }
-                    score += 20;
-                } else {
-                    for (int k = 0; k < currentMatchLength; k++) {
-                        matches[r + k][c] = true;
-                    }
-                    score += (currentMatchLength / 3) * 20;
-                }
             }
-            r += (currentMatchLength > 0) ? currentMatchLength : 1;
         }
     }
+
     return found;
 }
 
@@ -165,17 +137,10 @@ void draw_board () {
 int main () {
     srand (time (NULL));
     fill_array ();
-
-    if (find_matches ()) {
-        resolve_matches ();
-        score = 0;
-    }
-
     const int screen_height = 800;
     const int screen_width  = 800;
     InitWindow (screen_height, screen_width, "Match3");
-    SetTargetFPS (30);
-
+    SetTargetFPS (60);
     background = LoadTexture ("./src/resources/background.png");
     loadFonts (&gameFont, &scoreFont);
     int i         = 0;
@@ -184,7 +149,6 @@ int main () {
     while (!WindowShouldClose ()) {
         mouse = GetMousePosition ();
         if (IsMouseButtonPressed (MOUSE_LEFT_BUTTON)) {
-            printf ("");
             int x = (mouse.x - (4 * TILE_SIZE)) / TILE_SIZE;
             int y = (mouse.y - (4 * TILE_SIZE)) / TILE_SIZE;
             if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
@@ -195,8 +159,9 @@ int main () {
                     if (are_tiles_adjacent (selected, current_tile)) {
                         swap_tiles (
                         selected.x, selected.y, current_tile.x, current_tile.y);
-                        if (find_matches ()) {
+                        if (find_matches (true)) {
                             resolve_matches ();
+                            printf ("LMAO\n");
                         } else {
                             swap_tiles (selected.x, selected.y, current_tile.x,
                             current_tile.y);
@@ -215,6 +180,9 @@ int main () {
                     }
                 }
             }
+        }
+        while (find_matches (false)) {
+            resolve_matches ();
         }
         BeginDrawing ();
         ClearBackground (BLACK);

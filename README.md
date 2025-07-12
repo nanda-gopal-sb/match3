@@ -1,7 +1,11 @@
+## Welcome to the match3 game. Made with Raylib and C.
+
+Follow the intreuctions to compile the game for Linux and windows.
+
 ### CMake
 
 - Clone the repo
-- Type the follow command:
+- Type the follow commands:
 
 ```sh
 cmake -S . -B build
@@ -12,10 +16,6 @@ cmake -S . -B build
 - After CMake config your project build:
 
 ```sh
-cmake --build build
+cmake --build build && ./build/match3/match3  
 ```
 
-- Inside the build folder are another folder (named the same as the project name on CMakeLists.txt) with the executable and resources folder.
-- In order for resources to load properly, cd to `src` and run the executable (`../build/${PROJECT_NAME}/${PROJECT_NAME}`) from there.
-
-- cmake will automatically download a current release of raylib but if you want to use your local version you can pass `-DFETCHCONTENT_SOURCE_DIR_RAYLIB=<dir_with_raylib>` 
