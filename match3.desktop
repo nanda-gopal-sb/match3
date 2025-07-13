@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Match 3 Game
+Comment=A fun match-3 puzzle game made with raylib!
+Exec=/usr/bin/match3 # This must match the install(TARGETS) path
+Icon=/usr/share/icons/hicolor/scalable/apps/match3-icon           # This must match the icon filename without extension
+Terminal=false              # Set to true if your game needs a terminal to run
+Type=Application
+Categories=Game;PuzzleGame;

@@ -76,3 +76,4 @@ android.*
 .idea/
 *.iml
 .vscode/
+cmake-build-debug/
