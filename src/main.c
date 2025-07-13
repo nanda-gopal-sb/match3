@@ -14,7 +14,7 @@ typedef enum { STATE_IDLE, STATE_ANIMATING } TileState;
 
 TileState tile_state;
 
-const char tile_chars[TILE_TYPES] = { 'a', 'b', 'c', 'd', 'e' };
+const char tile_chars[TILE_TYPES] = { '@', 'L', 'O', '$', 'X' };
 char board[BOARD_SIZE][BOARD_SIZE];
 bool matches[BOARD_SIZE][BOARD_SIZE]      = { false };
 float fall_offset[BOARD_SIZE][BOARD_SIZE] = { 0 };
@@ -28,43 +28,43 @@ Font scoreFont;
 char randomTile () {
     return tile_chars[(rand () % TILE_TYPES)];
 }
-void swap_tiles (int x1, int y1, int x2, int y2) {
 
+void swap_tiles (int x1, int y1, int x2, int y2) {
     char temp     = board[x1][y1];
     board[x1][y1] = board[x2][y2];
     board[x2][y2] = temp;
 }
+
 bool are_tiles_adjacent (Vector2 a, Vector2 b) {
     return (abs ((int)a.x - (int)b.x) + abs ((int)a.y - (int)b.y)) == 1;
 }
+
 void loadFonts (Font* gameFont, Font* scoreFont) {
     *gameFont  = LoadFont ("./src/resources/gameFont.otf");
     *scoreFont = LoadFont ("./src/resources/scoreFont.ttf");
 }
 
 void fill_array () {
-    for (int y = 0; y < BOARD_SIZE; y++) {
-        for (int x = 0; x < BOARD_SIZE; x++) {
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
             board[x][y] = randomTile ();
         }
     }
 }
 
-
 bool find_matches (bool updateScore) {
     bool found = false;
-    for (int y = 0; y < BOARD_SIZE; y++) {
-        for (int x = 0; x < BOARD_SIZE; x++) {
-            matches[y][x] = false;
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
+            matches[x][y] = false;
         }
     }
 
-    for (int y = 0; y < BOARD_SIZE; y++) {
-        for (int x = 0; x < BOARD_SIZE - 2; x++) {
-            char t = board[y][x];
-            if (t == board[y][x + 1] && t == board[y][x + 2]) {
-                matches[y][x] = matches[y][x + 1] = matches[y][x + 2] = true;
-                // update score
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE - 2; y++) {
+            char t = board[x][y];
+            if (t == board[x][y + 1] && t == board[x][y + 2]) {
+                matches[x][y] = matches[x][y + 1] = matches[x][y + 2] = true;
                 if (updateScore) {
                     score += 10;
                 }
@@ -73,11 +73,11 @@ bool find_matches (bool updateScore) {
         }
     }
 
-    for (int x = 0; x < BOARD_SIZE; x++) {
-        for (int y = 0; y < BOARD_SIZE - 2; y++) {
-            char t = board[y][x];
-            if (t == board[y + 1][x] && t == board[y + 2][x]) {
-                matches[y][x] = matches[y + 1][x] = matches[y + 2][x] = true;
+    for (int y = 0; y < BOARD_SIZE; y++) {
+        for (int x = 0; x < BOARD_SIZE - 2; x++) {
+            char t = board[x][y];
+            if (t == board[x + 1][y] && t == board[x + 2][y]) {
+                matches[x][y] = matches[x + 1][y] = matches[x + 2][y] = true;
                 if (updateScore) {
                     score += 10;
                 }
@@ -89,23 +89,22 @@ bool find_matches (bool updateScore) {
     return found;
 }
 
-
 void resolve_matches () {
     for (int x = 0; x < BOARD_SIZE; x++) {
         int write_y = BOARD_SIZE - 1;
         for (int y = BOARD_SIZE - 1; y >= 0; y--) {
             if (!matches[x][y]) {
                 if (y != write_y) {
-                    board[write_y][x]       = board[y][x];
-                    fall_offset[write_y][x] = (write_y - y) * TILE_SIZE;
-                    board[y][x]             = ' ';
+                    board[x][write_y]       = board[x][y];
+                    fall_offset[x][write_y] = (write_y - y) * TILE_SIZE;
+                    board[x][y]             = ' ';
                 }
                 write_y--;
             }
         }
         while (write_y >= 0) {
-            board[write_y][x]       = randomTile ();
-            fall_offset[write_y][x] = (write_y + 1) * TILE_SIZE;
+            board[x][write_y]       = randomTile ();
+            fall_offset[x][write_y] = (write_y + 1) * TILE_SIZE;
             write_y--;
         }
     }
@@ -113,14 +112,14 @@ void resolve_matches () {
 }
 
 void draw_board () {
-    for (int y = 0; y < BOARD_SIZE; y++) {
-        for (int x = 0; x < BOARD_SIZE; x++) {
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
             Rectangle rect = { 4 * TILE_SIZE + (x * TILE_SIZE),
                 4 * TILE_SIZE + (y * TILE_SIZE), TILE_SIZE, TILE_SIZE };
             DrawRectangleLinesEx (rect, 1, BLACK);
-            if (board[y][x] != ' ') {
+            if (board[x][y] != ' ') {
                 DrawTextEx (gameFont, TextFormat ("%c", board[x][y]),
-                (Vector2){ rect.x + 12, rect.y + 8 - fall_offset[y][x] }, 35, 1, WHITE);
+                (Vector2){ rect.x + 12, rect.y + 8 - fall_offset[x][y] }, 35, 1, WHITE);
             }
         }
     }
@@ -143,7 +142,6 @@ int main () {
     SetTargetFPS (60);
     background = LoadTexture ("./src/resources/background.png");
     loadFonts (&gameFont, &scoreFont);
-    int i         = 0;
     Vector2 mouse = { 0, 0 };
 
     while (!WindowShouldClose ()) {
@@ -161,7 +159,6 @@ int main () {
                         selected.x, selected.y, current_tile.x, current_tile.y);
                         if (find_matches (true)) {
                             resolve_matches ();
-                            printf ("LMAO\n");
                         } else {
                             swap_tiles (selected.x, selected.y, current_tile.x,
                             current_tile.y);
@@ -171,12 +168,12 @@ int main () {
                 }
             }
         }
-        for (int y = 0; y < BOARD_SIZE; y++) {
-            for (int x = 0; x < BOARD_SIZE; x++) {
-                if (fall_offset[y][x] > 0) {
-                    fall_offset[y][x] -= fall_speed;
-                    if (fall_offset[y][x] < 0) {
-                        fall_offset[y][x] = 0;
+        for (int x = 0; x < BOARD_SIZE; x++) {
+            for (int y = 0; y < BOARD_SIZE; y++) {
+                if (fall_offset[x][y] > 0) {
+                    fall_offset[x][y] -= fall_speed;
+                    if (fall_offset[x][y] < 0) {
+                        fall_offset[x][y] = 0;
                     }
                 }
             }
