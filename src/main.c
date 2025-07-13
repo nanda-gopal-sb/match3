@@ -21,7 +21,7 @@ float fall_offset[BOARD_SIZE][BOARD_SIZE] = { 0 };
 int score                                 = 0;
 Vector2 selected                          = { -1, -1 };
 Texture2D background;
-float fall_speed = 8.0f;
+float fall_speed = 2.0f;
 Font gameFont;
 Font scoreFont;
 
